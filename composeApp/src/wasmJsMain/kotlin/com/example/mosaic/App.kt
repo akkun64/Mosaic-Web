@@ -13,8 +13,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 
@@ -169,6 +172,8 @@ fun App() {
 fun WelcomeScreen(onLoad: (List<Song>) -> Unit) {
     Box(Modifier.fillMaxSize().background(BgBlack), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(Icons.Filled.MusicNote, contentDescription = null, tint = Blue, modifier = Modifier.size(64.dp))
+            Spacer(Modifier.height(16.dp))
             Text("MUSIC", color = Blue, fontSize = 24.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
             Spacer(Modifier.height(24.dp))
             Text("Select audio files to play", color = TextGray, fontSize = 14.sp)
@@ -185,6 +190,8 @@ fun WelcomeScreen(onLoad: (List<Song>) -> Unit) {
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = Blue)
             ) {
+                Icon(Icons.Filled.FolderOpen, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
                 Text("Select Audio Files", color = TextWhite)
             }
         }
@@ -229,7 +236,7 @@ fun LibraryScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Box(Modifier.size(44.dp).clip(RoundedCornerShape(4.dp)).background(SurfaceDark), contentAlignment = Alignment.Center) {
-                        Text("\u266A", color = TextGray, fontSize = 18.sp)
+                        Icon(Icons.Filled.MusicNote, contentDescription = null, tint = TextGray, modifier = Modifier.size(22.dp))
                     }
                     Spacer(Modifier.width(12.dp))
                     Column(Modifier.weight(1f)) {
@@ -249,17 +256,22 @@ fun LibraryScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Box(Modifier.size(40.dp).clip(RoundedCornerShape(4.dp)).background(DividerColor), contentAlignment = Alignment.Center) {
-                    Text("\u266A", color = TextGray, fontSize = 16.sp)
+                    Icon(Icons.Filled.MusicNote, contentDescription = null, tint = TextGray, modifier = Modifier.size(20.dp))
                 }
                 Spacer(Modifier.width(10.dp))
                 Column(Modifier.weight(1f)) {
                     Text(currentSong.name, color = TextWhite, fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
                 IconButton(onClick = onMiniPlayPause) {
-                    Text(if (isPlaying) "\u23F8" else "\u25B6", color = TextWhite, fontSize = 16.sp)
+                    Icon(
+                        if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                        contentDescription = null,
+                        tint = TextWhite,
+                        modifier = Modifier.size(20.dp)
+                    )
                 }
                 IconButton(onClick = onNext) {
-                    Text("\u23ED", color = TextWhite, fontSize = 14.sp)
+                    Icon(Icons.Filled.SkipNext, contentDescription = null, tint = TextWhite, modifier = Modifier.size(20.dp))
                 }
             }
         }
@@ -288,7 +300,7 @@ fun NowPlayingScreen(
     Column(Modifier.fillMaxSize().background(BgBlack)) {
         Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onBack) {
-                Text("\u276E", color = TextWhite, fontSize = 18.sp)
+                Icon(Icons.Filled.ChevronRight, contentDescription = "Back", tint = TextWhite, modifier = Modifier.size(28.dp))
             }
             Spacer(Modifier.weight(1f))
         }
@@ -298,7 +310,7 @@ fun NowPlayingScreen(
             contentAlignment = Alignment.Center
         ) {
             Box(Modifier.aspectRatio(1f).fillMaxHeight().clip(RoundedCornerShape(8.dp)).background(SurfaceDark), contentAlignment = Alignment.Center) {
-                Text("\u266B", color = TextGray, fontSize = 64.sp)
+                Icon(Icons.Filled.Album, contentDescription = null, tint = TextGray, modifier = Modifier.size(80.dp))
             }
         }
 
@@ -325,19 +337,24 @@ fun NowPlayingScreen(
         }
 
         Row(Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 8.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
-            Text("\u21C4", color = if (shuffleOn) Blue else TextGray, fontSize = 20.sp, modifier = Modifier.clickable { onToggleShuffle() })
-            Text("\u2661", color = TextGray, fontSize = 20.sp)
-            Text("\u2630", color = TextGray, fontSize = 20.sp)
+            Icon(Icons.Filled.Shuffle, contentDescription = "Shuffle", tint = if (shuffleOn) Blue else TextGray, modifier = Modifier.size(22.dp).clickable { onToggleShuffle() })
+            Icon(Icons.Filled.FavoriteBorder, contentDescription = "Favorite", tint = TextGray, modifier = Modifier.size(22.dp))
+            Icon(Icons.Filled.Equalizer, contentDescription = "Equalizer", tint = TextGray, modifier = Modifier.size(22.dp))
         }
 
         Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 16.dp), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
-            Text("\u23F7", color = TextGray, fontSize = 20.sp)
-            Text("\u23EE", color = TextWhite, fontSize = 28.sp, modifier = Modifier.clickable { onPrev() })
+            Icon(Icons.Filled.QueueMusic, contentDescription = "Queue", tint = TextGray, modifier = Modifier.size(24.dp))
+            Icon(Icons.Filled.SkipPrevious, contentDescription = "Previous", tint = TextWhite, modifier = Modifier.size(32.dp).clickable { onPrev() })
             Box(Modifier.size(60.dp).clip(CircleShape).background(Blue).clickable { onPlayPause() }, contentAlignment = Alignment.Center) {
-                Text(if (isPlaying) "\u23F8" else "\u25B6", color = TextWhite, fontSize = 28.sp)
+                Icon(
+                    if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                    contentDescription = if (isPlaying) "Pause" else "Play",
+                    tint = TextWhite,
+                    modifier = Modifier.size(32.dp)
+                )
             }
-            Text("\u23ED", color = TextWhite, fontSize = 28.sp, modifier = Modifier.clickable { onNext() })
-            Text("\u21BB", color = if (repeatOn) Blue else TextGray, fontSize = 20.sp, modifier = Modifier.clickable { onToggleRepeat() })
+            Icon(Icons.Filled.SkipNext, contentDescription = "Next", tint = TextWhite, modifier = Modifier.size(32.dp).clickable { onNext() })
+            Icon(Icons.Filled.Repeat, contentDescription = "Repeat", tint = if (repeatOn) Blue else TextGray, modifier = Modifier.size(22.dp).clickable { onToggleRepeat() })
         }
     }
 }
