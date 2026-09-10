@@ -20,9 +20,3 @@ kotlin {
         }
     }
 }
-
-compose.experimental {
-    web.application {
-        mainClass.set("MainKt")
-    }
-}
