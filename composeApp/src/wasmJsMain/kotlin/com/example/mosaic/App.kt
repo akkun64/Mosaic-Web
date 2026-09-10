@@ -17,11 +17,9 @@ import androidx.compose.material3.*
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import kotlinx.browser.document
 import org.w3c.files.File
-import org.w3c.files.FileReader
 import org.w3c.files.get as fileGet
-import kotlin.js.Promise
+import kotlinx.browser.document
 
 val Blue = Color(0xFF448AFF)
 val BgBlack = Color(0xFF000000)
@@ -65,7 +63,7 @@ fun App() {
             }
         }
 
-        AudioPlayer.onEnded = {
+        AudioPlayer.setOnEnded {
             isPlaying = false
             if (repeatOn && currentIndex >= 0) {
                 AudioPlayer.play()
@@ -115,7 +113,7 @@ fun App() {
                     currentTime = 0f
                 },
                 onPrev = {
-                    if (currentTime > 3000) {
+                    if (currentTime > 3000f) {
                         AudioPlayer.seek(0)
                         currentTime = 0f
                     } else {
@@ -371,5 +369,7 @@ fun NowPlayingScreen(
 
 fun formatMs(ms: Double): String {
     val s = (ms / 1000).toInt()
-    return "%d:%02d".format(s / 60, s % 60)
+    val min = s / 60
+    val sec = s % 60
+    return "$min:${if (sec < 10) "0$sec" else "$sec"}"
 }
