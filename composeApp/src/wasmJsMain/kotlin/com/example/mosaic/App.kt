@@ -17,9 +17,6 @@ import androidx.compose.material3.*
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import org.w3c.files.File
-import org.w3c.files.get as fileGet
-import kotlinx.browser.document
 
 val Blue = Color(0xFF448AFF)
 val BgBlack = Color(0xFF000000)
@@ -28,10 +25,7 @@ val TextWhite = Color(0xFFFFFFFF)
 val TextGray = Color(0xFF999999)
 val DividerColor = Color(0xFF2A2A2A)
 
-data class Song(
-    val name: String,
-    val file: File
-)
+data class Song(val index: Int, val name: String)
 
 @Composable
 fun App() {
@@ -70,12 +64,12 @@ fun App() {
                 isPlaying = true
             } else if (currentIndex >= 0) {
                 val next = if (shuffleOn) {
-                    (songs.indices).random()
+                    songs.indices.random()
                 } else {
                     (currentIndex + 1) % songs.size
                 }
                 currentIndex = next
-                AudioPlayer.load(songs[next].file)
+                AudioPlayer.loadByIndex(songs[next].index)
                 AudioPlayer.play()
                 isPlaying = true
             }
@@ -86,7 +80,7 @@ fun App() {
                 songs = it
                 if (it.isNotEmpty()) {
                     currentIndex = 0
-                    AudioPlayer.load(it[0].file)
+                    AudioPlayer.loadByIndex(it[0].index)
                 }
             }
         } else if (showPlayer && currentSong != null) {
@@ -107,19 +101,19 @@ fun App() {
                 onNext = {
                     val next = if (shuffleOn) (songs.indices).random() else (currentIndex + 1) % songs.size
                     currentIndex = next
-                    AudioPlayer.load(songs[next].file)
+                    AudioPlayer.loadByIndex(songs[next].index)
                     AudioPlayer.play()
                     isPlaying = true
                     currentTime = 0f
                 },
                 onPrev = {
                     if (currentTime > 3000f) {
-                        AudioPlayer.seek(0)
+                        AudioPlayer.seek(0.0)
                         currentTime = 0f
                     } else {
                         val prev = if (currentIndex - 1 < 0) songs.size - 1 else currentIndex - 1
                         currentIndex = prev
-                        AudioPlayer.load(songs[prev].file)
+                        AudioPlayer.loadByIndex(songs[prev].index)
                         AudioPlayer.play()
                         isPlaying = true
                         currentTime = 0f
@@ -131,7 +125,7 @@ fun App() {
                 onPageChange = { idx ->
                     if (idx != currentIndex) {
                         currentIndex = idx
-                        AudioPlayer.load(songs[idx].file)
+                        AudioPlayer.loadByIndex(songs[idx].index)
                         AudioPlayer.play()
                         isPlaying = true
                         currentTime = 0f
@@ -145,7 +139,7 @@ fun App() {
                 isPlaying = isPlaying,
                 onSongClick = { idx ->
                     currentIndex = idx
-                    AudioPlayer.load(songs[idx].file)
+                    AudioPlayer.loadByIndex(songs[idx].index)
                     AudioPlayer.play()
                     isPlaying = true
                     currentTime = 0f
@@ -159,7 +153,7 @@ fun App() {
                     if (currentIndex >= 0) {
                         val next = (currentIndex + 1) % songs.size
                         currentIndex = next
-                        AudioPlayer.load(songs[next].file)
+                        AudioPlayer.loadByIndex(songs[next].index)
                         AudioPlayer.play()
                         isPlaying = true
                         currentTime = 0f
@@ -177,27 +171,17 @@ fun WelcomeScreen(onLoad: (List<Song>) -> Unit) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text("MUSIC", color = Blue, fontSize = 24.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
             Spacer(Modifier.height(24.dp))
-            Text("Drop audio files here", color = TextGray, fontSize = 14.sp)
+            Text("Select audio files to play", color = TextGray, fontSize = 14.sp)
             Spacer(Modifier.height(16.dp))
             Button(
                 onClick = {
-                    val input = document.createElement("input") as org.w3c.dom.HTMLInputElement
-                    input.type = "file"
-                    input.multiple = true
-                    input.accept = "audio/*"
-                    input.onchange = {
-                        val files = input.files
-                        val result = mutableListOf<Song>()
-                        if (files != null) {
-                            for (i in 0 until files.length) {
-                                files.fileGet(i)?.let { file ->
-                                    result.add(Song(file.name, file))
-                                }
-                            }
+                    AudioPlayer.openFilePicker {
+                        val count = AudioPlayer.getFileCount()
+                        val result = (0 until count).map { i ->
+                            Song(i, AudioPlayer.getFileName(i))
                         }
                         if (result.isNotEmpty()) onLoad(result)
                     }
-                    input.click()
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = Blue)
             ) {
@@ -218,11 +202,9 @@ fun LibraryScreen(
     onMiniTap: () -> Unit
 ) {
     Column(Modifier.fillMaxSize().background(BgBlack)) {
-        // Header
         Box(Modifier.fillMaxWidth().background(SurfaceDark).padding(horizontal = 16.dp, vertical = 12.dp)) {
             Text("MUSIC", color = Blue, fontSize = 18.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp)
         }
-        // Tabs
         Row(Modifier.fillMaxWidth().background(SurfaceDark)) {
             listOf("Tracks").forEach { tab ->
                 Text(
@@ -236,7 +218,6 @@ fun LibraryScreen(
         }
         Divider(color = DividerColor, thickness = 1.dp)
 
-        // Song list
         LazyColumn(Modifier.weight(1f)) {
             itemsIndexed(songs) { idx, song ->
                 val isCurrent = song == currentSong
@@ -259,7 +240,6 @@ fun LibraryScreen(
             }
         }
 
-        // Mini player
         if (currentSong != null) {
             Divider(color = DividerColor, thickness = 1.dp)
             Row(
@@ -306,7 +286,6 @@ fun NowPlayingScreen(
     onPageChange: (Int) -> Unit
 ) {
     Column(Modifier.fillMaxSize().background(BgBlack)) {
-        // Top bar
         Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onBack) {
                 Text("\u276E", color = TextWhite, fontSize = 18.sp)
@@ -314,7 +293,6 @@ fun NowPlayingScreen(
             Spacer(Modifier.weight(1f))
         }
 
-        // Album art placeholder (large)
         Box(
             Modifier.fillMaxWidth().weight(0.45f).padding(horizontal = 24.dp),
             contentAlignment = Alignment.Center
@@ -324,12 +302,11 @@ fun NowPlayingScreen(
             }
         }
 
-        // Song info
         Column(Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(song.name.substringBeforeLast("."), color = TextWhite, fontSize = 18.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+            val displayName = if (song.name.contains(".")) song.name.substringBeforeLast(".") else song.name
+            Text(displayName, color = TextWhite, fontSize = 18.sp, fontWeight = FontWeight.Bold, maxLines = 1)
         }
 
-        // Seek bar
         Column(Modifier.padding(horizontal = 24.dp)) {
             Slider(
                 value = currentTime,
@@ -347,14 +324,12 @@ fun NowPlayingScreen(
             }
         }
 
-        // Middle row
         Row(Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 8.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
             Text("\u21C4", color = if (shuffleOn) Blue else TextGray, fontSize = 20.sp, modifier = Modifier.clickable { onToggleShuffle() })
             Text("\u2661", color = TextGray, fontSize = 20.sp)
             Text("\u2630", color = TextGray, fontSize = 20.sp)
         }
 
-        // Bottom controls
         Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 16.dp), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
             Text("\u23F7", color = TextGray, fontSize = 20.sp)
             Text("\u23EE", color = TextWhite, fontSize = 28.sp, modifier = Modifier.clickable { onPrev() })

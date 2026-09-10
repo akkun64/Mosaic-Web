@@ -1,32 +1,47 @@
 package com.example.mosaic
 
-import org.w3c.files.File
-
-private fun jsEval(code: String): dynamic = js("(function() { return $code })()")
-
 object AudioPlayer {
-    var onEnded: () -> Unit = {}
-
-    private val audio: dynamic = js("new Audio()")
-    private var onEndFn: (() -> Unit)? = null
-
     fun init() {
-        audio.onended = { onEndFn?.invoke() }
+        js("window._mosaicInit()")
     }
 
-    fun load(file: File) {
-        val url: dynamic = js("URL.createObjectURL")(file)
-        audio.src = url
-        audio.load()
+    fun loadByIndex(index: Int) {
+        js("window._mosaicLoadByIndex(index)")
     }
 
-    fun play() { audio.play() }
-    fun pause() { audio.pause() }
-    fun seek(ms: Double) { audio.currentTime = ms / 1000.0 }
-    fun getCurrentTime(): Double = (audio.currentTime as? Double ?: 0.0) * 1000.0
-    fun getDuration(): Double = (audio.duration as? Double ?: 0.0) * 1000.0
+    fun play() {
+        js("window._mosaicPlay()")
+    }
+
+    fun pause() {
+        js("window._mosaicPause()")
+    }
+
+    fun seek(ms: Double) {
+        js("window._mosaicSeek(ms)")
+    }
+
+    fun getCurrentTime(): Double {
+        return js("window._mosaicGetTime()")
+    }
+
+    fun getDuration(): Double {
+        return js("window._mosaicGetDur()")
+    }
 
     fun setOnEnded(block: () -> Unit) {
-        onEndFn = block
+        js("window._mosaicSetOnEnd(block)")
+    }
+
+    fun openFilePicker(callback: () -> Unit) {
+        js("window._mosaicOpenPicker(callback)")
+    }
+
+    fun getFileCount(): Int {
+        return js("window._mosaicFiles.length")
+    }
+
+    fun getFileName(index: Int): String {
+        return js("window._mosaicFiles[index].name")
     }
 }
